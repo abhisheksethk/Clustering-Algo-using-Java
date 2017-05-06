@@ -13,8 +13,12 @@ class Kmean
     private Point[] p1;
     private int size;
     private int totalClusters;
-    private LinkedList<Point>[] cluster=new LinkedList[10];
+    private LinkedList<Point>[] cluster;
     private Map<Integer,Integer> kmap=new HashMap<Integer,Integer>();
+    public void clusterNo(int k)
+    {
+        cluster=new LinkedList[k];
+    }
     public void centroids(Point[] p,int k,int max)
     {
         final int[] ints = new Random().ints(0, max).distinct().limit(k).toArray();
@@ -24,10 +28,10 @@ class Kmean
         totalClusters=k;
     }
     public void printCentroids()
-    {
+    {    int no=-1;
         for (int i:centPoint )
         {
-            //System.out.println(i);
+            System.out.print("centroid-No:-"+" "+"("+(++no)+")"+" ");
             p1[i].printPoint();
         }
     }
@@ -150,6 +154,7 @@ public class MainKmean {
         Kmean obj=new Kmean();
         obj.centroids(p,k,size);
         obj.printCentroids();
+        obj.clusterNo(k);
         obj.createCluster();
         obj.printClusters();
     }
