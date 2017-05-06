@@ -1,13 +1,118 @@
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.InputStreamReader;
+import java.util.*;
 
 /**
  * Created by abhishek on 5/5/17.
  */
+class Kmean
+{
+    private int[] centPoint;
+    private Point[] p1;
+    private int size;
+    private int totalClusters;
+    private LinkedList<Point>[] cluster=new LinkedList[10];
+    private Map<Integer,Integer> kmap=new HashMap<Integer,Integer>();
+    public void centroids(Point[] p,int k,int max)
+    {
+        final int[] ints = new Random().ints(0, max).distinct().limit(k).toArray();
+        centPoint=ints;
+        p1=p;
+        size=max;
+        totalClusters=k;
+    }
+    public void printCentroids()
+    {
+        for (int i:centPoint )
+        {
+            //System.out.println(i);
+            p1[i].printPoint();
+        }
+    }
+    public void createCluster()
+    {
+
+        int k=0;
+
+        for (int i:centPoint)
+        {
+            kmap.put(i,k);
+            k++;
+        }
+
+        for (int i = 0; i < totalClusters; i++)
+        {
+             cluster[i]=new LinkedList<Point>();
+        }
+     label2:   for (int j = 0; j < size; j++)
+        {   int flag=0;
+            for (int i:centPoint)
+            {
+                if (j==i)
+                {
+                    flag=1;
+                    break;
+                }
+            }
+            if (flag==1)
+                continue label2;
+
+            Map<Integer,Double> dist=new HashMap<Integer,Double>();
+            for (int i:centPoint)
+            {
+                dist.put(i,eculidDistance(p1[i],p1[j]));
+            }
+            int key=0;
+            Double min = Collections.min(dist.values());
+            for (int i:centPoint)
+            {
+                if (dist.get(i)==min)
+                {
+                    key=i;
+                    break ;
+                }
+            }
+            //System.out.println(key);
+            //System.out.println(kmap);
+            int clusterNo= kmap.get(key);
+            cluster[clusterNo].add(p1[j]);
+            p1[j].clusterVector=clusterNo;
+
+          //System.out.println(dist);//distance of all cluster centroid from a point
+        }
+     }
+    public void printClusters()
+    {
+        for (int i = 0; i <totalClusters ; i++)
+        {
+            System.out.print("Cluster No:- "+i+"  ");
+            for (Point j:cluster[i])
+            {
+                System.out.print(j.id+" ");
+            }
+           System.out.println("");
+        }
+    }
+    public double eculidDistance(Point p1,Point p2)
+    {
+        double temp=0.0;
+        for (int i = 0; i < p1.varSize; i++)
+        {
+            temp +=Math.pow((p1.variable[i]-p2.variable[i]),2);
+        }
+        double dist=Math.sqrt(temp);
+        return dist;
+    }
+}
 class Point
 {
     int clusterVector;
     int varSize;
     double[] variable;
+    int id;
+    static int count=-1;
     public Point(double[] v)
     {
         variable=new double[v.length] ;
@@ -16,6 +121,16 @@ class Point
            variable[i] =v[i];
         }
        varSize=v.length;
+        id= (++count);
+    }
+    void printPoint()
+    {
+        for (double d:variable)
+        {
+            System.out.print(d);
+            System.out.print(" ");
+        }
+        System.out.println("");
     }
 
 }
@@ -25,11 +140,18 @@ public class MainKmean {
         System.out.println("Enter the file name");
         String fileName = br.readLine();
         File f = new File("/home/abhishek/Desktop/Projects/DataScience", fileName);
-        System.out.println("enter the size of dataset");
+        System.out.println("enter the length of dataset");
         int size=Integer.parseInt(br.readLine());
         Point[] p=getPointArray(size);
         readTable(f,p);
         printTable(p);
+        System.out.println("Enter no of cluster");
+        int k=Integer.parseInt(br.readLine());
+        Kmean obj=new Kmean();
+        obj.centroids(p,k,size);
+        obj.printCentroids();
+        obj.createCluster();
+        obj.printClusters();
     }
     public static Point[] getPointArray(int number)
     {
@@ -59,7 +181,7 @@ public class MainKmean {
             int validVariable = Integer.parseInt(br.readLine());
             int count = 0;
             label1: while (line != null) {
-                if(line.charAt(0)=='@'||line.charAt(0)=='%')
+                if((line.charAt(0)=='@'||line.charAt(0)=='%'))
                 {
                     line = br1.readLine();
                     continue label1;
