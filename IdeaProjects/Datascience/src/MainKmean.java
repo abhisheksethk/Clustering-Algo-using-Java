@@ -4,6 +4,48 @@ import java.util.*;
 /**
  * Created by abhishek on 5/5/17.
  */
+class DBIndex extends  DunneIndex//need some improvement regarding interface
+{
+    public void db(int k)
+    {
+        double sum=0.0;
+        for (int i=0;i<k;i++)
+        {
+            LinkedList<Double> res=new LinkedList<Double>();
+            for (int j = 0; j < k; j++)
+            {
+                if (i!=j)
+                {
+                    double temp1=diam(cluster[i],i)+diam(cluster[j],j);
+                    double temp2=diss(cluster[i],cluster[j]);
+                    double temp3=temp1/temp2;
+                    res.add(temp3);
+                }
+            }
+           sum +=Collections.max(res);
+        }
+        System.out.println("DB Index: "+sum/k);
+
+    }
+    public double diam(LinkedList<Point> cluster,int n )
+    {
+        double sum=0.0;
+        int key=0;
+        for (int i:centPoint)
+        {
+            if (kmap.get(i)==n)
+            {
+                key=i;
+                break;
+            }
+        }
+        for (Point p:cluster)
+        {
+            sum +=eculidDistance(p, p1[key]);
+        }
+        return sum/cluster.size();
+    }
+}
 class DunneIndex extends Kmean
 {
     public void dune(int k)
@@ -75,7 +117,7 @@ class Kmean
     public int size;
     public int totalClusters;
     public LinkedList<Point>[] cluster;
-    public Map<Integer,Integer> kmap=new HashMap<Integer,Integer>();
+    public Map<Integer,Integer> kmap=new HashMap<Integer,Integer>();//adding cluster no with its centroid points
     public void clusterNo(int k)
     {
         cluster=new LinkedList[k];
@@ -212,13 +254,14 @@ public class MainKmean {
         printTable(p);
         System.out.println("Enter no of cluster");
         int k=Integer.parseInt(br.readLine());
-        DunneIndex obj=new DunneIndex();
+        DBIndex obj=new DBIndex();
         obj.centroids(p,k,size);
         obj.printCentroids();
         obj.clusterNo(k);
         obj.createCluster();
         obj.printClusters();
         obj.dune(k);
+        obj.db(k);
     }
     public static Point[] getPointArray(int number)
     {
