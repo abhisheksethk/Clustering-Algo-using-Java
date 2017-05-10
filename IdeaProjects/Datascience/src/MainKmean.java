@@ -143,19 +143,19 @@ class Kmean
 
         int k=0;
 
-        for (int i:centPoint)
+        for (int i:centPoint)//ACT centroidpoint added cluster no by kmap
         {
             kmap.put(i,k);
             k++;
         }
 
-        for (int i = 0; i < totalClusters; i++)
+        for (int i = 0; i < totalClusters; i++)//create k no clusters
         {
              cluster[i]=new LinkedList<Point>();
         }
-     label2:   for (int j = 0; j < size; j++)
+        label2:for (int j = 0; j < size; j++)//total point in datasets
         {   int flag=0;
-            for (int i:centPoint)
+            for (int i:centPoint)//if point equal to centroidpoint then set flag=1
             {
                 if (j==i)
                 {
@@ -163,19 +163,19 @@ class Kmean
                     break;
                 }
             }
-            if (flag==1)
+            if (flag==1)//when flag=1 not calculate eculid distance and skip the loop
                 continue label2;
 
-            Map<Integer,Double> dist=new HashMap<Integer,Double>();
+            Map<Integer,Double> dist=new HashMap<Integer,Double>();//distance of a point from centroidpoint
             for (int i:centPoint)
             {
-                dist.put(i,eculidDistance(p1[i],p1[j]));
+                dist.put(i,eculidDistance(p1[i],p1[j]));//calculate a point distance from every centroidpoint and add into dist Map
             }
             int key=0;
-            Double min = Collections.min(dist.values());
+            Double min = Collections.min(dist.values());//minimum distance of point from several centroidpoint
             for (int i:centPoint)
             {
-                if (dist.get(i)==min)
+                if (dist.get(i)==min)//at the centroid where distance got minimum take that centroid point index no as a key
                 {
                     key=i;
                     break ;
@@ -183,13 +183,31 @@ class Kmean
             }
             //System.out.println(key);
             //System.out.println(kmap);
-            int clusterNo= kmap.get(key);
-            cluster[clusterNo].add(p1[j]);
-            p1[j].clusterVector=clusterNo;
+            int clusterNo= kmap.get(key);//get cluster no by using key
+            cluster[clusterNo].add(p1[j]);//add point to that cluster where distance in minimum
+            p1[j].clusterVector=clusterNo;//add cluster no that point
 
           //System.out.println(dist);//distance of all cluster centroid from a point
         }
+        for (int i = 0; i < cluster.length; i++)
+        {
+            int p=getCentroidPoint(i);
+            cluster[i].add(p1[p]);
+        }
      }
+    public int getCentroidPoint(int n)
+    {
+        int temp=0;
+        for (int p:centPoint)
+        {
+            if (kmap.get(p)==n)
+            {
+                temp=p;
+                break;
+            }
+        }
+        return temp;
+    }
     public void printClusters()
     {
         for (int i = 0; i <totalClusters ; i++)
