@@ -1,20 +1,81 @@
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.*;
 
 /**
  * Created by abhishek on 5/5/17.
  */
+class DunneIndex extends Kmean
+{
+    public void dune(int k)
+    {
+        double diameter=diam(k);
+        //System.out.println(diameter);
+        LinkedList<Double> res1=new LinkedList<Double>();
+        for (int i = 0; i < k; i++)
+        {
+            LinkedList<Double> res=new LinkedList<Double>();
+
+            for (int j = 1; j <k ; j++)
+            {   if (i!=j)
+                {
+                    double temp=diss(cluster[i],cluster[j]);
+                    double temp2=temp/diameter;
+                    res.add(temp2);
+                }
+            }
+           res1.add(Collections.min(res)) ;
+        }
+        System.out.print("Dunne Index "+" : "+ Collections.min(res1));
+        System.out.println("");
+    }
+    public double diss(LinkedList<Point> ci,LinkedList<Point> cj)
+    {
+        LinkedList<Double> dist=new LinkedList<>();
+        for (Point i :ci)
+        {
+            for (Point j:cj)
+            {
+                dist.add(eculidDistance(i,j));
+            }
+        }
+        Double min = Collections.min(dist);
+        return min;
+    }
+    public double diam(int k)
+    {
+        LinkedList<Double> ClusDiam=new LinkedList<Double>();
+        for (int i = 0; i < k; i++)
+        {
+            LinkedList<Double> sinClusDiam=new LinkedList<Double>();
+           // Iterator itr1 = cluster[i].iterator();
+           for (Point x:cluster[i])//some optimization here we can do
+            {   //Object temp=itr1.next();
+                //Iterator itr2 = itr1.
+                //while (itr2.hasNext())
+                for (Point y:cluster[i])
+                {
+                    sinClusDiam.add(eculidDistance(x,y));
+                }
+            }
+            //System.out.println(sinClusDiam);
+            Double maxDiamSingCluster=Collections.max(sinClusDiam);
+            //System.out.println(maxDiamSingCluster);
+           ClusDiam.add(maxDiamSingCluster);
+        }
+       // System.out.println(ClusDiam);
+        //System.out.println(ClusDiam);
+        return Collections.max(ClusDiam);
+
+    }
+}
 class Kmean
 {
-    private int[] centPoint;
-    private Point[] p1;
-    private int size;
-    private int totalClusters;
-    private LinkedList<Point>[] cluster;
-    private Map<Integer,Integer> kmap=new HashMap<Integer,Integer>();
+    public int[] centPoint;
+    public Point[] p1;
+    public int size;
+    public int totalClusters;
+    public LinkedList<Point>[] cluster;
+    public Map<Integer,Integer> kmap=new HashMap<Integer,Integer>();
     public void clusterNo(int k)
     {
         cluster=new LinkedList[k];
@@ -151,29 +212,47 @@ public class MainKmean {
         printTable(p);
         System.out.println("Enter no of cluster");
         int k=Integer.parseInt(br.readLine());
-        Kmean obj=new Kmean();
+        DunneIndex obj=new DunneIndex();
         obj.centroids(p,k,size);
         obj.printCentroids();
         obj.clusterNo(k);
         obj.createCluster();
         obj.printClusters();
+        obj.dune(k);
     }
     public static Point[] getPointArray(int number)
     {
         Point[] p=new Point[number];
         return p;
     }
-    public static void printTable(Point[] p)
+    public static void printTable(Point[] p)throws java.io.IOException
     {
-        for (Point i:p)
+        System.out.println("Enter the Output file name");
+        String fileOutpout=br.readLine();
+        File f1=new File("/home/abhishek/Desktop/Projects/DataScience",fileOutpout);
+        try {
+            f1.createNewFile();
+            PrintWriter pw = new PrintWriter(f1);
+
+
+            for (Point i : p) {
+
+                for (int j = 0; j < i.varSize; j++) {
+                    pw.print(i.variable[j]);
+                    System.out.print(i.variable[j]);
+                    System.out.print('\t');
+                    pw.print('\t');
+                }
+                pw.println("");
+                System.out.println("");
+            }
+            pw.flush();
+            pw.close();
+
+        }
+        catch (Exception e)
         {
 
-            for (int j = 0; j <i.varSize ; j++)
-            {
-                System.out.print(i.variable[j]);
-                System.out.print('\t');
-            }
-            System.out.println("");
         }
     }
 
