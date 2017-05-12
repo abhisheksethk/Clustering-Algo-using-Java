@@ -112,6 +112,7 @@ class DunneIndex extends Kmean
 }
 class Kmean
 {
+    public Point[] newClusterCentPoint;
     public int[] centPoint;
     public Point[] p1;
     public int size;
@@ -230,11 +231,90 @@ class Kmean
         double dist=Math.sqrt(temp);
         return dist;
     }
+    public void updateCluster()
+    {
+        for (int i = 0; i < totalClusters; i++)//create k no clusters
+        {
+            cluster[i]=new LinkedList<Point>();
+        }
+        for (int j = 0; j < size; j++)//total point in datasets
+        {
+            Map<Integer,Double> dist=new HashMap<Integer,Double>();//distance of a point from centroidpoint
+            for (int i = 0; i <newClusterCentPoint.length ; i++)
+            {
+                dist.put(i,eculidDistance(newClusterCentPoint[i],p1[j]));//calculate a point distance from every centroidpoint and add into dist Map
+            }
+            int key=0;
+            Double min = Collections.min(dist.values());//minimum distance of point from several centroidpoint
+            for (int i=0;i<dist.size();i++)
+            {
+                if (dist.get(i)==min)//at the centroid where distance got minimum take that centroid point index no as a key
+                {
+                    key=i;
+                    break ;
+                }
+            }
+            //System.out.println(key);
+            //System.out.println(kmap);
+            int clusterNo= key;//get cluster no by using key
+            cluster[clusterNo].add(p1[j]);//add point to that cluster where distance in minimum
+            p1[j].clusterVector=clusterNo;//nadd cluster no that point
+
+            //System.out.println(dist);//distance of all cluster centroid from a point
+        }
+        for (int i = 0; i < cluster.length; i++)
+        {
+            cluster[i].add(newClusterCentPoint[i]);
+        }
+    }
+
+    public void updatedClusterCentroid()
+    {
+        newClusterCentPoint=new Point[totalClusters];
+        //Scanner sc=new Scanner(System.in);
+        //System.out.println("Enter the variable size of point");
+        //int s=sc.nextInt();
+        for (int i = 0; i < totalClusters; i++)
+        {
+           double[] point= mean(cluster[i]);
+            /*for (int j = 0; j < point.length; j++)
+            {
+                System.out.println(point[j]);
+            }*/
+
+           newClusterCentPoint[i]=new Point(point);
+        }
+    }
+    public double[] mean(LinkedList<Point> cluster)
+    {
+        int varSize=Point.varSize;
+        double[] varSum=new double[varSize];
+        double[] varAvg=new double[varSize];
+        for (int i = 0; i < varSize; i++)
+        {
+            varSum[i]=0;
+        }
+
+        for (Point p:cluster)
+        {    int j=0;
+            for (int i = 0; i <p.varSize ; i++)
+            {
+                varSum[j] +=p.variable[i];
+                j++;
+            }
+        }
+        for (int i = 0; i <varSize ; i++)
+        {
+            varAvg[i]=varSum[i]/cluster.size();
+            //System.out.print(varAvg[i]+ "   ");
+        }
+        return varAvg;
+    }
 }
 class Point
 {
     int clusterVector;
-    int varSize;
+    static int varSize;
     double[] variable;
     int id;
     static int count=-1;
@@ -267,17 +347,30 @@ public class MainKmean {
         File f = new File("/home/abhishek/Desktop/Projects/DataScience", fileName);
         System.out.println("enter the length of dataset");
         int size=Integer.parseInt(br.readLine());
+        System.out.println("Enter no of cluster");
+        int k=Integer.parseInt(br.readLine());
+        System.out.println("enter the no of iteration");
+        int n=Integer.parseInt(br.readLine());
         Point[] p=getPointArray(size);
         readTable(f,p);
         printTable(p);
-        System.out.println("Enter no of cluster");
-        int k=Integer.parseInt(br.readLine());
         DBIndex obj=new DBIndex();
         obj.centroids(p,k,size);
         obj.printCentroids();
         obj.clusterNo(k);
         obj.createCluster();
         obj.printClusters();
+        for (int i = 0; i < n; i++)
+        {
+
+            obj.updatedClusterCentroid();
+            obj.updateCluster();
+            obj.printClusters();
+            System.out.println("");System.out.println("");System.out.println("");System.out.println("");System.out.println("");
+            System.out.println("");System.out.println("");System.out.println("");System.out.println("");System.out.println("");
+
+        }
+
         obj.dune(k);
         obj.db(k);
     }
